@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+  Suspense,
   memo,
   useCallback,
   useEffect,
@@ -466,7 +467,7 @@ const ChatSidebar = memo(function ChatSidebar({
   );
 });
 
-const MyChatPage = () => {
+const MyChatPageContent = () => {
   const t = useTranslations("MyChatPage");
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -924,5 +925,17 @@ const MyChatPage = () => {
     </div>
   );
 };
+
+const MyChatPageFallback = () => (
+  <div className="flex min-h-dvh items-center justify-center text-zinc-500 dark:text-zinc-400">
+    <div className="h-10 w-10 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+  </div>
+);
+
+const MyChatPage = () => (
+  <Suspense fallback={<MyChatPageFallback />}>
+    <MyChatPageContent />
+  </Suspense>
+);
 
 export default MyChatPage;

@@ -18,7 +18,7 @@ import type { Section } from "../types";
 import AdminNavMain from "./AdminNavMain";
 import AdminNavUser from "./AdminNavUser";
 
-type AdminAppSidebarProps = ComponentProps<typeof Sidebar> & {
+type AdminAppSidebarProps = Omit<ComponentProps<typeof Sidebar>, "onSelect"> & {
   section: Section;
   onSelect: (section: Section) => void;
 };

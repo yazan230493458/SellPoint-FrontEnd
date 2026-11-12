@@ -234,6 +234,7 @@ const AnalyticsChart = ({
             distributionData.length && !timeData.length
               ? distributionData.map((row) => ({
                   label: row.label,
+                  date: row.label,
                   value: row.value,
                   fill: row.fill,
                 }))

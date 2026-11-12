@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/app/[locale]/components/main/Header";
 import Button from "@/app/[locale]/components/ui/Button";
@@ -80,7 +80,7 @@ const planForCycle = (plans: CatalogPlan[], cycle: "monthly" | "yearly") => {
 
 type UiState = "idle" | "redirecting" | "pending_config" | "error";
 
-const PaymentPage = () => {
+const PaymentPageContent = () => {
   const t = useTranslations("PaymentPage");
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -355,5 +355,17 @@ const PaymentPage = () => {
     </>
   );
 };
+
+const PaymentPageFallback = () => (
+  <main className="min-h-dvh pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto flex items-center justify-center text-zinc-500 dark:text-zinc-400">
+    <Loader2 className="w-6 h-6 animate-spin" aria-hidden />
+  </main>
+);
+
+const PaymentPage = () => (
+  <Suspense fallback={<PaymentPageFallback />}>
+    <PaymentPageContent />
+  </Suspense>
+);
 
 export default PaymentPage;

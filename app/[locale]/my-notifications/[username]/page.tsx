@@ -302,12 +302,13 @@ const MyNotificationsPage = () => {
                         variant="ghost"
                         size="icon"
                         aria-label={t("markAsRead")}
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                           e.preventDefault();
                           e.stopPropagation();
                           markAsRead(notification.id);
-                      void apiRequest(`/api/notifications/${notification.id}/read`, { method: "PATCH" }).catch(() => undefined);
-                          void apiRequest(`/api/notifications/${notification.id}/read`, { method: "PATCH" }).catch(() => undefined);
+                          void apiRequest(`/api/notifications/${notification.id}/read`, {
+                            method: "PATCH",
+                          }).catch(() => undefined);
                         }}
                         className="size-9 p-0 text-zinc-400 hover:bg-zinc-100 hover:text-emerald-600 dark:hover:bg-zinc-800 dark:hover:text-emerald-400"
                       >
@@ -320,11 +321,13 @@ const MyNotificationsPage = () => {
                       variant="ghost"
                       size="icon"
                       aria-label={t("delete")}
-                      onClick={(e) => {
+                      onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                         e.preventDefault();
                         e.stopPropagation();
                         removeNotification(notification.id);
-                        void apiRequest(`/api/notifications/${notification.id}`, { method: "DELETE" }).catch(() => undefined);
+                        void apiRequest(`/api/notifications/${notification.id}`, {
+                          method: "DELETE",
+                        }).catch(() => undefined);
                       }}
                       className="size-9 p-0 text-zinc-400 hover:bg-zinc-100 hover:text-rose-600 dark:hover:bg-zinc-800 dark:hover:text-rose-400"
                     >

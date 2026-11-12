@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -23,7 +23,7 @@ type VerifyResponse = {
 
 type ResultState = "loading" | "success" | "failed" | "pending" | "error";
 
-const PaymentResultPage = () => {
+const PaymentResultPageContent = () => {
   const t = useTranslations("PaymentPage");
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -138,5 +138,17 @@ const PaymentResultPage = () => {
     </>
   );
 };
+
+const PaymentResultPageFallback = () => (
+  <main className="min-h-dvh pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto flex items-center justify-center text-zinc-500 dark:text-zinc-400">
+    <Loader2 className="w-6 h-6 animate-spin" aria-hidden />
+  </main>
+);
+
+const PaymentResultPage = () => (
+  <Suspense fallback={<PaymentResultPageFallback />}>
+    <PaymentResultPageContent />
+  </Suspense>
+);
 
 export default PaymentResultPage;

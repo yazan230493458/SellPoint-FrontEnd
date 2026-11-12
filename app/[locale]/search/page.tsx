@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -33,7 +33,7 @@ import ReportDialog from "../components/ui/ReportDialog";
 
 type SortValue = "newest" | "price_asc" | "price_desc" | "views";
 
-const SearchPage = () => {
+const SearchPageContent = () => {
   const t = useTranslations("SearchPage");
   const catalogLabel = useCatalogLabel();
   const searchParams = useSearchParams();
@@ -386,5 +386,17 @@ const SearchPage = () => {
     </>
   );
 };
+
+const SearchPageFallback = () => (
+  <main className="mt-30 flex min-h-dvh w-full items-center justify-center p-4 text-zinc-500 dark:text-zinc-400">
+    <div className="h-10 w-10 animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-800" />
+  </main>
+);
+
+const SearchPage = () => (
+  <Suspense fallback={<SearchPageFallback />}>
+    <SearchPageContent />
+  </Suspense>
+);
 
 export default SearchPage;

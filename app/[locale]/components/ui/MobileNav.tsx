@@ -141,7 +141,7 @@ const MobileNav = () => {
             size="icon"
             className="size-10 rounded-xl px-0 shadow-none"
             aria-label={t("closeMenu")}
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
               close();
             }}
