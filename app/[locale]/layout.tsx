@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Cairo, Noto_Sans_Hebrew } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -72,6 +73,7 @@ export default async function RootLayout({
   const currentLocale = resolvedParams?.locale || (await getLocale());
   setRequestLocale(currentLocale);
   const messages = await getMessages();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const config = getLocaleConfig(currentLocale);
   const dir = config.dir;
   const rtl = isRtlLocale(currentLocale);
@@ -103,6 +105,7 @@ export default async function RootLayout({
             defaultTheme="light"
             enableSystem={true}
             disableTransitionOnChange
+            nonce={nonce}
           >
             <div
               className="min-h-dvh min-w-0 overflow-x-clip pb-[var(--mobile-nav-height)] md:pb-0"

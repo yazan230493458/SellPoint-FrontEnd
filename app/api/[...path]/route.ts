@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { resolveApiProxyTarget } from "@/lib/api-proxy-target";
+import { applySecurityHeaders } from "@/lib/security-headers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,10 +62,18 @@ const forwardRequestHeaders = (request: NextRequest) => {
   return headers;
 };
 
+const STRIP_UPSTREAM_HEADERS = new Set([
+  "x-powered-by",
+  "server",
+  "x-aspnet-version",
+  "x-aspnetmvc-version",
+]);
+
 const applyResponseHeaders = (upstream: Response, headers: Headers) => {
   upstream.headers.forEach((value, key) => {
     const lower = key.toLowerCase();
     if (HOP_BY_HOP.has(lower)) return;
+    if (STRIP_UPSTREAM_HEADERS.has(lower)) return;
     if (lower === "set-cookie") return;
     if (lower === "content-encoding") return;
     headers.set(key, value);
@@ -88,7 +97,9 @@ const proxyRequest = async (
     const { path } = await context.params;
     const segments = Array.isArray(path) ? path : [];
     if (segments.length === 0) {
-      return NextResponse.json({ message: "Not found" }, { status: 404 });
+      const notFound = NextResponse.json({ message: "Not found" }, { status: 404 });
+      applySecurityHeaders(notFound.headers);
+      return notFound;
     }
 
     const targetUrl = buildTargetUrl(request, segments);
@@ -109,6 +120,7 @@ const proxyRequest = async (
 
     const responseHeaders = new Headers();
     applyResponseHeaders(upstream, responseHeaders);
+    applySecurityHeaders(responseHeaders);
     const payload = await upstream.arrayBuffer();
 
     return new NextResponse(payload, {
@@ -117,7 +129,9 @@ const proxyRequest = async (
       headers: responseHeaders,
     });
   } catch {
-    return NextResponse.json({ message: "Bad gateway" }, { status: 502 });
+    const failure = NextResponse.json({ message: "Bad gateway" }, { status: 502 });
+    applySecurityHeaders(failure.headers);
+    return failure;
   }
 };
 

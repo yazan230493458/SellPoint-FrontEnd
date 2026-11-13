@@ -1,5 +1,6 @@
 import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { nextConfigSecurityHeaders } from "./lib/security-headers";
 
 const DEFAULT_DEV_TARGET = "http://localhost:1000";
 const DEFAULT_PROD_TARGET = "https://sellpoint-backend-86i1.onrender.com";
@@ -19,6 +20,7 @@ const resolveUploadProxyTarget = () => {
 const uploadTarget = resolveUploadProxyTarget();
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   allowedDevOrigins: ["192.168.0.248", "172.20.10.8"],
   images: {
     remotePatterns: [
@@ -40,6 +42,14 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: nextConfigSecurityHeaders(),
+      },
+    ];
   },
   async rewrites() {
     return [
