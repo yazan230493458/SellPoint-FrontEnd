@@ -3,12 +3,36 @@ import { useUserStore } from "@/store/user.store";
 const DEFAULT_DEV_API_URL = "http://localhost:1000";
 const DEFAULT_PROD_API_URL = "https://sellpoint-backend-86i1.onrender.com";
 
+const isLocalBackendOrigin = (value: string) => {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+    return url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+};
+
+const normalizeOrigin = (value: string) => value.replace(/\/+$/, "");
+
+/**
+ * Single Backend origin for every API request, OAuth redirect, and /uploads asset.
+ * Priority: NEXT_PUBLIC_API_URL → mode default.
+ * Production never keeps a localhost/127.0.0.1 Backend origin.
+ */
 const resolveApiUrl = () => {
+  const isProd = process.env.NODE_ENV === "production";
   const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (configured) return configured.replace(/\/+$/, "");
-  return process.env.NODE_ENV === "production"
-    ? DEFAULT_PROD_API_URL
-    : DEFAULT_DEV_API_URL;
+
+  if (configured) {
+    const origin = normalizeOrigin(configured);
+    if (isProd && isLocalBackendOrigin(origin)) {
+      return DEFAULT_PROD_API_URL;
+    }
+    return origin;
+  }
+
+  return isProd ? DEFAULT_PROD_API_URL : DEFAULT_DEV_API_URL;
 };
 
 /** Backend origin used by all API and upload URL construction. */
@@ -95,9 +119,20 @@ export const apiRequest = async <T>(path: string, options: RequestOptions = {}):
 
 export const assetUrl = (value: string | null | undefined) => {
   if (!value) return "/placeholder.png";
-  if (value.startsWith("data:") || value.startsWith("http://") || value.startsWith("https://")) {
-    return value;
+  if (value.startsWith("data:")) return value;
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    try {
+      const url = new URL(value);
+      if (isLocalBackendOrigin(url.origin)) {
+        return `${API_URL}${url.pathname}${url.search}${url.hash}`;
+      }
+      return value;
+    } catch {
+      return value;
+    }
   }
+
   if (value.startsWith("/uploads/")) return `${API_URL}${value}`;
   return value;
 };
