@@ -23,7 +23,7 @@ import { useStoreStore } from "@/store/store.store";
 import { useHydrated } from "@/lib/use-hydrated";
 import { useUserStore } from "@/store/user.store";
 import { isSafeImageSrc } from "@/lib/safe-href";
-import { apiRequest, ApiError, API_URL } from "@/lib/api";
+import { apiRequest, ApiError, assetUrl } from "@/lib/api";
 import { triggerNotificationByPreference } from "@/utils/notifications";
 import {
   MessageSquare,
@@ -788,7 +788,7 @@ const MyChatPageContent = () => {
                                   role="img"
                                   aria-label={t("attachImage")}
                                   className="h-40 w-full rounded-xl bg-cover bg-center"
-                                  style={{ backgroundImage: `url(${API_URL}${item.imageUrl})` }}
+                                  style={{ backgroundImage: `url(${assetUrl(item.imageUrl)})` }}
                                 />
                               ) : null}
                             </>

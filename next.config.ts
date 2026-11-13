@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
                 port: "1000",
                 pathname: "/uploads/**",
             },
+            {
+                protocol: "https",
+                hostname: "sellpoint-backend-86i1.onrender.com",
+                pathname: "/uploads/**",
+            },
         ],
     },
     experimental: {

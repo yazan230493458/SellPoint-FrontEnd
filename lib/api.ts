@@ -1,6 +1,18 @@
 import { useUserStore } from "@/store/user.store";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:1000";
+const DEFAULT_DEV_API_URL = "http://localhost:1000";
+const DEFAULT_PROD_API_URL = "https://sellpoint-backend-86i1.onrender.com";
+
+const resolveApiUrl = () => {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+  return process.env.NODE_ENV === "production"
+    ? DEFAULT_PROD_API_URL
+    : DEFAULT_DEV_API_URL;
+};
+
+/** Backend origin used by all API and upload URL construction. */
+export const API_URL = resolveApiUrl();
 
 export class ApiError extends Error {
   status: number;
