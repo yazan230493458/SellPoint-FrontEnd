@@ -1,7 +1,7 @@
 import { useUserStore } from "@/store/user.store";
 
-const DEFAULT_DEV_API_URL = "http://localhost:1000";
-const DEFAULT_PROD_API_URL = "https://sellpoint-backend-86i1.onrender.com";
+const DEFAULT_DEV_BACKEND_ORIGIN = "http://localhost:1000";
+const DEFAULT_PROD_BACKEND_ORIGIN = "https://sellpoint-backend-86i1.onrender.com";
 
 const isLocalBackendOrigin = (value: string) => {
   try {
@@ -16,27 +16,48 @@ const isLocalBackendOrigin = (value: string) => {
 const normalizeOrigin = (value: string) => value.replace(/\/+$/, "");
 
 /**
- * Single Backend origin for every API request, OAuth redirect, and /uploads asset.
- * Priority: NEXT_PUBLIC_API_URL → mode default.
- * Production never keeps a localhost/127.0.0.1 Backend origin.
+ * Browser API base path. Empty string = same-origin `/api/...` via the Next.js proxy.
+ * Direct Backend origins are rejected in production so cookies stay first-party.
  */
 const resolveApiUrl = () => {
-  const isProd = process.env.NODE_ENV === "production";
   const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!configured || configured === "/") return "";
 
+  const origin = normalizeOrigin(configured);
+  if (process.env.NODE_ENV === "production") {
+    if (isLocalBackendOrigin(origin) || origin === DEFAULT_PROD_BACKEND_ORIGIN) {
+      return "";
+    }
+  }
+  if (origin === DEFAULT_DEV_BACKEND_ORIGIN || isLocalBackendOrigin(origin)) {
+    return "";
+  }
+  return origin;
+};
+
+/**
+ * Backend origin for top-level OAuth navigations only (authorize + provider redirect).
+ * Session cookies are established later via same-origin handoff through the proxy.
+ */
+const resolveOAuthBackendOrigin = () => {
+  const configured = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
   if (configured) {
     const origin = normalizeOrigin(configured);
-    if (isProd && isLocalBackendOrigin(origin)) {
-      return DEFAULT_PROD_API_URL;
+    if (process.env.NODE_ENV === "production" && isLocalBackendOrigin(origin)) {
+      return DEFAULT_PROD_BACKEND_ORIGIN;
     }
     return origin;
   }
-
-  return isProd ? DEFAULT_PROD_API_URL : DEFAULT_DEV_API_URL;
+  return process.env.NODE_ENV === "production"
+    ? DEFAULT_PROD_BACKEND_ORIGIN
+    : DEFAULT_DEV_BACKEND_ORIGIN;
 };
 
-/** Backend origin used by all API and upload URL construction. */
+/** Same-origin API prefix for browser fetch (proxied to Express). */
 export const API_URL = resolveApiUrl();
+
+/** Absolute Backend origin used only for OAuth window navigations. */
+export const OAUTH_BACKEND_URL = resolveOAuthBackendOrigin();
 
 export class ApiError extends Error {
   status: number;
@@ -124,8 +145,11 @@ export const assetUrl = (value: string | null | undefined) => {
   if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
       const url = new URL(value);
-      if (isLocalBackendOrigin(url.origin)) {
-        return `${API_URL}${url.pathname}${url.search}${url.hash}`;
+      if (
+        isLocalBackendOrigin(url.origin) ||
+        url.hostname === "sellpoint-backend-86i1.onrender.com"
+      ) {
+        return `${url.pathname}${url.search}${url.hash}`;
       }
       return value;
     } catch {
@@ -133,6 +157,6 @@ export const assetUrl = (value: string | null | undefined) => {
     }
   }
 
-  if (value.startsWith("/uploads/")) return `${API_URL}${value}`;
+  if (value.startsWith("/uploads/")) return value;
   return value;
 };

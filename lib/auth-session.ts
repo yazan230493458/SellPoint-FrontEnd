@@ -1,6 +1,6 @@
 import { useUserStore } from "@/store/user.store";
 import type { AuthResponse } from "@/lib/ads";
-import { API_URL } from "@/lib/api";
+import { OAUTH_BACKEND_URL } from "@/lib/api";
 
 export const applyAuthResponse = (payload: AuthResponse) => {
   if (!payload.user) return;
@@ -30,6 +30,11 @@ export const applyAuthResponse = (payload: AuthResponse) => {
   });
 };
 
+/**
+ * Top-level navigation to the Backend OAuth authorize endpoint.
+ * State cookies must be set on the Backend host so the Backend callback can validate them.
+ * Session cookies are established afterward via same-origin `/api/auth/oauth/complete`.
+ */
 export const startOAuth = (provider: "google" | "github") => {
-  window.location.assign(`${API_URL}/api/auth/${provider}`);
+  window.location.assign(`${OAUTH_BACKEND_URL}/api/auth/${provider}`);
 };
